@@ -15,7 +15,7 @@ defmodule VideoProcessor.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     [ mod: {VideoProcessor, []},
-      applications: [:logger, :httpoison]]
+      applications: [:logger, :httpoison, :ex_aws, :hackney, :poison]]
   end
 
   # Dependencies can be Hex packages:
@@ -28,6 +28,12 @@ defmodule VideoProcessor.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:httpoison, "~> 0.10.0"}, {:poison, "~> 3.0"}, {:floki, "~> 0.11.0"}]
+    [
+      {:httpoison, "~> 0.10.0"},
+      {:poison, "~> 2.0"},
+      {:floki, "~> 0.11.0"},
+      {:ex_aws, "~> 1.0.0-beta0"},
+      {:hackney, "~> 1.6"}
+    ]
   end
 end

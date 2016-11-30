@@ -20,7 +20,7 @@ defmodule VideoProcessor.Periodically do
       fn(x) ->
         url = parse_xml(x, "link")
         filename = parse_xml(x, "guid") <> ".mp4"
-        GenServer.call(VideoProcessor.Process, {:process, [url, filename]})
+        GenServer.call(VideoProcessor.Download, {:process, [url, filename]})
       end
     )
     schedule_work() # Reschedule once more
