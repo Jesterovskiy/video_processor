@@ -6,7 +6,8 @@ defmodule VideoProcessor do
     IO.puts "App Start"
     children = [
       worker(VideoProcessor.Periodically, []),
-      worker(VideoProcessor.Download, [])
+      worker(VideoProcessor.Download, []),
+      worker(VideoProcessor.S3Upload, [])
     ]
 
     opts = [strategy: :one_for_one, name: VideoProcessor.Supervisor]

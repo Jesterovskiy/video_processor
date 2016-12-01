@@ -8,7 +8,7 @@ defmodule VideoProcessor.Periodically do
 
   def init(state) do
     IO.puts "Init"
-    Process.send(self(), :work, [])
+    # Process.send(self(), :work, [])
     {:ok, state}
   end
 
@@ -29,7 +29,7 @@ defmodule VideoProcessor.Periodically do
 
   defp schedule_work() do
     IO.puts "Schedule Work"
-    Process.send_after(self(), :work, 10 * 60 * 1000) # In 2 hours
+    Process.send_after(self(), :work, 20 * 60 * 1000) # In 2 hours
   end
 
   defp parse_xml(item, element) do
