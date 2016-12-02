@@ -6,4 +6,4 @@ BUILD_AT="/tmp/edeliver/myapp/builds"
 
 PRODUCTION_HOSTS="ec2-54-242-152-231.compute-1.amazonaws.com"
 PRODUCTION_USER="ubuntu"
-DELIVER_TO="/opt/video_processor"
+DELIVER_TO="/app"

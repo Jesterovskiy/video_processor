@@ -7,7 +7,8 @@ defmodule VideoProcessor do
     children = [
       worker(VideoProcessor.Periodically, []),
       worker(VideoProcessor.Download, []),
-      worker(VideoProcessor.S3Upload, [])
+      worker(VideoProcessor.S3Upload, []),
+      worker(VideoProcessor.UplynkUpload, [])
     ]
 
     opts = [strategy: :one_for_one, name: VideoProcessor.Supervisor]

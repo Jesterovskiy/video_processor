@@ -1,4 +1,4 @@
-defmodule VideoProcessor.S3Upload do
+defmodule VideoProcessor.UplynkUpload do
   use GenServer
 
   defmodule State do
@@ -6,7 +6,7 @@ defmodule VideoProcessor.S3Upload do
   end
 
   def start_link do
-    IO.puts "Start S3Upload"
+    IO.puts "Start UplynkUpload"
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
@@ -16,12 +16,12 @@ defmodule VideoProcessor.S3Upload do
   end
 
   def handle_call({:process, source_file}, _from, state) do
-    IO.puts "Upload Video to S3"
+    IO.puts "Upload Video from S3 to upLynk"
     IO.puts "Start count " <> Integer.to_string(state.current_count)
     {message, new_state} =
       if state.current_count < state.limit do
         IO.puts "Run upload"
-        Task.async(VideoProcessor.S3Upload, :s3_upload, [source_file])
+        Task.async(VideoProcessor.UplynkUpload, :uplynk_upload, [source_file])
         {:executing_right_now, update_in(state.current_count, &(&1 + 1))}
       else
         IO.puts "Add queue"
@@ -31,12 +31,12 @@ defmodule VideoProcessor.S3Upload do
     {:reply, message, new_state}
   end
 
-  def handle_cast(:s3_upload_finish, state) do
-    IO.puts "S3 Upload Finish"
+  def handle_cast(:uplynk_upload_finish, state) do
+    IO.puts "upLynk Upload Finish"
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
-        Task.async(VideoProcessor.S3Upload, :s3_upload, [params])
+        Task.async(VideoProcessor.UplynkUpload, :uplynk_upload, [params])
         put_in(state.queue, params_later_in_queue)
       else
         update_in(state.current_count, &(&1 - 1))
@@ -45,12 +45,9 @@ defmodule VideoProcessor.S3Upload do
   end
 
   def s3_upload(file_name) do
-    IO.puts "Uploading #{file_name} to S3"
-    file_name
-    |> ExAws.S3.Upload.stream_file
-    |> ExAws.S3.upload(Application.get_env(:ex_aws, :upload_bucket), file_name)
-    |> ExAws.request!
-    IO.puts "Done Uploading #{file_name} to S3"
-    GenServer.cast(VideoProcessor.S3Upload, :s3_upload_finish)
+    IO.puts "Uploading #{file_name} to upLynk"
+
+    IO.puts "Done Uploading #{file_name} to upLynk"
+    GenServer.cast(VideoProcessor.UplynkUpload, :uplynk_upload_finish)
   end
 end

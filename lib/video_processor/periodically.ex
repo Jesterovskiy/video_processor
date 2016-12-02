@@ -8,14 +8,14 @@ defmodule VideoProcessor.Periodically do
 
   def init(state) do
     IO.puts "Init"
-    # Process.send(self(), :work, [])
+    Process.send(self(), :work, [])
     {:ok, state}
   end
 
   def handle_info(:work, state) do
     IO.puts "Handle info"
     body = HTTPoison.get!(Application.get_env(:video_processor, :url)).body
-    Enum.each(Floki.find(body, "item") |> Enum.slice(0, 10),
+    Enum.each(Floki.find(body, "item") |> Enum.slice(0, 2),
       # Floki.find(body, "item"),
       fn(x) ->
         url = parse_xml(x, "link")
@@ -29,7 +29,7 @@ defmodule VideoProcessor.Periodically do
 
   defp schedule_work() do
     IO.puts "Schedule Work"
-    Process.send_after(self(), :work, 20 * 60 * 1000) # In 2 hours
+    Process.send_after(self(), :work, 300 * 60 * 1000) # In 2 hours
   end
 
   defp parse_xml(item, element) do
