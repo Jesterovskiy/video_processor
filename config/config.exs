@@ -20,9 +20,16 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
+
+config :video_processor,
+  complex_feed_url: System.get_env("COMPLEX_FEED_URL"),
+  uplynk_account_guid: System.get_env("UPLYNK_ACCOUNT_GUID"),
+  uplynk_secret_key: System.get_env("UPLYNK_SECRET_KEY"),
+  s3_url: System.get_env("AWS_S3_URL")
 config :ex_aws,
-  access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
-  secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role]
+  access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+  secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
+  upload_bucket: System.get_env("TEST_COMPLEX_UPLOADS")
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

@@ -44,10 +44,35 @@ defmodule VideoProcessor.UplynkUpload do
     {:noreply, new_state}
   end
 
-  def s3_upload(file_name) do
+  def uplynk_upload(file_name) do
     IO.puts "Uploading #{file_name} to upLynk"
-
+    msg = %{
+      "_owner"      => Application.get_env(:video_processor, :uplynk_account_guid),
+      "_timestamp"  => DateTime.utc_now() |> DateTime.to_unix,
+      "source"      => %{
+        url: Application.get_env(:video_processor, :s3_url) <> "/#{file_name}",
+        api_key: Application.get_env(:ex_aws, :access_key_id),
+        api_secret: Application.get_env(:ex_aws, :secret_access_key)
+      },
+      "args"        => %{external_id: String.replace(file_name, ".mp4", "")}
+    } |> JSX.encode |> elem(1)
+    msg = Base.encode64(:zlib.compress(msg)) |> String.strip
+    sig = :crypto.hmac(:sha256, Application.get_env(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
+    query = %{msg: msg, sig: sig} |> URI.encode_query
+    HTTPoison.get!("http://services.uplynk.com/api2/cloudslicer/jobs/create?" <> query)
     IO.puts "Done Uploading #{file_name} to upLynk"
     GenServer.cast(VideoProcessor.UplynkUpload, :uplynk_upload_finish)
+  end
+
+  def get_cloud_jobs do
+    msg = %{
+      "_owner"      => Application.get_env(:video_processor, :uplynk_account_guid),
+      "_timestamp"  => DateTime.utc_now() |> DateTime.to_unix
+    } |> JSX.encode |> elem(1)
+    msg = Base.encode64(:zlib.compress(msg)) |> String.strip
+    sig = :crypto.hmac(:sha256, Application.get_env(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
+    query = %{msg: msg, sig: sig} |> URI.encode_query
+    response = HTTPoison.get!("http://services.uplynk.com/api2/cloudslicer/jobs/list?" <> query)
+    IO.puts inspect response
   end
 end

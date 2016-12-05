@@ -34,7 +34,7 @@ defmodule VideoProcessor.Mixfile do
       {:floki, "~> 0.11.0"},
       {:ex_aws, "~> 1.0.0-rc.4"},
       {:hackney, "~> 1.6"},
-      {:jsx, "~> 2.8"},
+      {:exjsx, "~> 3.2"},
       {:sweet_xml, "~> 0.5"},
       {:edeliver, "~> 1.4.0"},
       {:distillery, "~> 0.10"}

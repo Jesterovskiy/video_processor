@@ -31,8 +31,9 @@ defmodule VideoProcessor.S3Upload do
     {:reply, message, new_state}
   end
 
-  def handle_cast(:s3_upload_finish, state) do
+  def handle_cast({:s3_upload_finish, file_name}, state) do
     IO.puts "S3 Upload Finish"
+    GenServer.call(VideoProcessor.UplynkUpload, {:process, file_name})
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
@@ -51,6 +52,6 @@ defmodule VideoProcessor.S3Upload do
     |> ExAws.S3.upload(Application.get_env(:ex_aws, :upload_bucket), file_name)
     |> ExAws.request!
     IO.puts "Done Uploading #{file_name} to S3"
-    GenServer.cast(VideoProcessor.S3Upload, :s3_upload_finish)
+    GenServer.cast(VideoProcessor.S3Upload, {:s3_upload_finish, file_name})
   end
 end
