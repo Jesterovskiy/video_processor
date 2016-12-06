@@ -2,18 +2,15 @@ defmodule VideoProcessor.Periodically do
   use GenServer
 
   def start_link do
-    IO.puts "Periodically start"
     GenServer.start_link(__MODULE__, %{})
   end
 
   def init(state) do
-    IO.puts "Init"
-    # Process.send(self(), :work, [])
+    Process.send(self(), :work, [])
     {:ok, state}
   end
 
   def handle_info(:work, state) do
-    IO.puts "Handle info"
     body = HTTPoison.get!(Application.get_env(:video_processor, :complex_feed_url)).body
     Enum.each(Floki.find(body, "item") |> Enum.slice(0, 1),
       # Floki.find(body, "item"),

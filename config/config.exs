@@ -18,18 +18,21 @@ use Mix.Config
 #
 # Or configure a 3rd-party app:
 #
-#     config :logger, level: :info
-#
+# config :logger,
+#   backends: [{LoggerFileBackend, :error_log}]
+# config :logger, :error_log,
+#   path: "/var/log/my_app/error.log",
+#   level: :error
 
 config :video_processor,
-  complex_feed_url: System.get_env("COMPLEX_FEED_URL"),
+  complex_feed_url:    System.get_env("COMPLEX_FEED_URL"),
   uplynk_account_guid: System.get_env("UPLYNK_ACCOUNT_GUID"),
-  uplynk_secret_key: System.get_env("UPLYNK_SECRET_KEY"),
-  s3_url: System.get_env("AWS_S3_URL")
+  uplynk_secret_key:   System.get_env("UPLYNK_SECRET_KEY"),
+  s3_url:              System.get_env("AWS_S3_URL")
 config :ex_aws,
-  access_key_id: System.get_env("AWS_ACCESS_KEY_ID"),
+  access_key_id:     System.get_env("AWS_ACCESS_KEY_ID"),
   secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY"),
-  upload_bucket: System.get_env("TEST_COMPLEX_UPLOADS")
+  upload_bucket:     System.get_env("AWS_UPLOAD_BUCKET")
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

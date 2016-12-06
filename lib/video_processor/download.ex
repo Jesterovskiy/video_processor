@@ -6,33 +6,25 @@ defmodule VideoProcessor.Download do
   end
 
   def start_link do
-    IO.puts "Start Download"
     GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
   def init(_state) do
-    IO.puts "Init"
     {:ok, %State{}}
   end
 
   def handle_call({:process, params}, _from, state) do
-    IO.puts "Get video"
-    IO.puts "Start count " <> Integer.to_string(state.current_count)
     {message, new_state} =
       if state.current_count < state.limit do
-        IO.puts "Run download"
         Task.async(VideoProcessor.Download, :download, params)
         {:executing_right_now, update_in(state.current_count, &(&1 + 1))}
       else
-        IO.puts "Add queue"
         {:added_to_queue, update_in(state.queue, &[params | &1])}
       end
-    IO.puts "End count " <> Integer.to_string(new_state.current_count)
     {:reply, message, new_state}
   end
 
   def handle_cast({:download_finish, filename}, state) do
-    IO.puts "Download Finish"
     GenServer.call(VideoProcessor.S3Upload, {:process, filename})
     new_state =
       if length(state.queue) > 0 do
