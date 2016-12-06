@@ -11,8 +11,8 @@ defmodule VideoProcessor.Periodically do
   end
 
   def handle_info(:work, state) do
-    body = HTTPoison.get!(Application.get_env(:video_processor, :complex_feed_url)).body
-    Enum.each(Floki.find(body, "item") |> Enum.slice(0, 1),
+    response = Application.fetch_env!(:video_processor, :complex_feed_url) |> HTTPoison.get!
+    Enum.each(Floki.find(response.body, "item") |> Enum.slice(0, 1),
       # Floki.find(body, "item"),
       fn(x) ->
         url = parse_xml(x, "link")
