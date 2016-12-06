@@ -33,4 +33,3 @@ end
 release :video_processor do
   set version: current_version(:video_processor)
 end
-

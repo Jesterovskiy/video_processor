@@ -1,4 +1,5 @@
 %{"certifi": {:hex, :certifi, "0.7.0", "861a57f3808f7eb0c2d1802afeaae0fa5de813b0df0979153cbafcd853ababaf", [], []},
+  "confex": {:hex, :confex, "1.4.2", "68a41392b2d3737b545b29432d898b443b0519df57c27a37a268a3139990ee7f", [:mix], []},
   "distillery": {:hex, :distillery, "0.10.1", "14fccade4b8ab849b99e21c4bdfaa1092dbacdce8afd33f5c369c6e114385b0e", [:mix], []},
   "edeliver": {:hex, :edeliver, "1.4.0", "c1713b3fabfa75d64770a28b715379be6631442b5d288fc92d45e037757dc9c8", [:mix], [{:distillery, ">= 0.8.0", [hex: :distillery, optional: true]}, {:exrm, ">= 0.16.0", [hex: :exrm, optional: true]}]},
   "ex_aws": {:hex, :ex_aws, "1.0.0-rc.4", "87c3edb1358069edd93896d0a0dff28e0b1b08327730abb6620aba2420f3809a", [:mix], [{:gen_stage, "~> 0.8.0", [hex: :gen_stage, optional: false]}, {:hackney, "~> 1.5", [hex: :hackney, optional: true]}, {:jsx, "~> 2.8", [hex: :jsx, optional: true]}, {:poison, "~> 1.2 or ~> 2.0", [hex: :poison, optional: true]}, {:sweet_xml, "~> 0.5", [hex: :sweet_xml, optional: true]}]},

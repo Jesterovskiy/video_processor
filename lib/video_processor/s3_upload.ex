@@ -41,7 +41,7 @@ defmodule VideoProcessor.S3Upload do
     IO.puts "Uploading #{file_name} to S3"
     file_name
     |> ExAws.S3.Upload.stream_file
-    |> ExAws.S3.upload(Application.fetch_env!(:ex_aws, :upload_bucket), file_name)
+    |> ExAws.S3.upload(Confex.get(:ex_aws, :upload_bucket), file_name)
     |> ExAws.request!
     IO.puts "Done Uploading #{file_name} to S3"
     GenServer.cast(VideoProcessor.S3Upload, {:s3_upload_finish, file_name})
