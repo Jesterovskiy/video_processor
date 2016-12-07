@@ -12,7 +12,7 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     IO.puts inspect Confex.get(:video_processor, :complex_feed_url)
-    IO.puts inspect System.get_env
+    IO.puts inspect Application.get_env(:video_processor, :complex_feed_url)
     response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!
     Enum.each(Floki.find(response.body, "item") |> Enum.slice(0, 1),
       # Floki.find(body, "item"),

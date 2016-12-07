@@ -1,5 +1,4 @@
 APP="video_processor"
-LINK_SYS_CONFIG=/app/config/sys.config
 
 BUILD_HOST="ec2-54-242-152-231.compute-1.amazonaws.com"
 BUILD_USER="ubuntu"
@@ -8,3 +7,14 @@ BUILD_AT="/tmp/edeliver/myapp/builds"
 PRODUCTION_HOSTS="ec2-54-242-152-231.compute-1.amazonaws.com"
 PRODUCTION_USER="ubuntu"
 DELIVER_TO="/app"
+
+pre_erlang_get_and_update_deps() {
+  # copy it on the build host to the build directory when building
+  local _secret_config_file_on_build_host="/app/config/secret.exs"
+  if [ "$TARGET_MIX_ENV" = "prod" ]; then
+    status "Copying '$_secret_config_file_on_build_host' file to build dir"
+    __sync_remote " # execute on build host
+      cp '$_secret_config_file_on_build_host' '$BUILD_AT/config/secret.exs'
+    "
+  fi
+}
