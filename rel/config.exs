@@ -23,6 +23,7 @@ environment :prod do
   set include_erts: true
   set include_src: false
   set cookie: :"cblbPc>$DRk6]xI?c43M6u,k86I)[BR6$;w{)TIQ8;p40OZ@Op`+u63uF&2)VgsY"
+  set config: "config/prod.exs"
 end
 
 # You may define one or more releases in this file.
