@@ -5,3 +5,4 @@ erl_crash.dump
 *.ez
 .deliver/releases/
 .env
+config/prod.exs
