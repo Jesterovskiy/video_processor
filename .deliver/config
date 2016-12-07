@@ -1,4 +1,5 @@
 APP="video_processor"
+LINK_SYS_CONFIG=/app/config/sys.config
 
 BUILD_HOST="ec2-54-242-152-231.compute-1.amazonaws.com"
 BUILD_USER="ubuntu"
