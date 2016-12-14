@@ -25,6 +25,9 @@ defmodule VideoProcessor.Download do
   end
 
   def handle_cast({:download_finish, filename}, state) do
+    :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
+    :dets.insert(Confex.get(:video_processor, :disk_storage), {filename, "download_finish"})
+    :dets.close(Confex.get(:video_processor, :disk_storage))
     GenServer.call(VideoProcessor.S3Upload, {:process, filename})
     new_state =
       if length(state.queue) > 0 do

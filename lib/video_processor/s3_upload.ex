@@ -24,8 +24,11 @@ defmodule VideoProcessor.S3Upload do
     {:reply, message, new_state}
   end
 
-  def handle_cast({:s3_upload_finish, file_name}, state) do
-    GenServer.call(VideoProcessor.UplynkUpload, {:process, file_name})
+  def handle_cast({:s3_upload_finish, filename}, state) do
+    :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
+    :dets.insert(Confex.get(:video_processor, :disk_storage), {filename, "s3_upload_finish"})
+    :dets.close(Confex.get(:video_processor, :disk_storage))
+    GenServer.call(VideoProcessor.UplynkUpload, {:process, filename})
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
@@ -37,13 +40,13 @@ defmodule VideoProcessor.S3Upload do
     {:noreply, new_state}
   end
 
-  def s3_upload(file_name) do
-    IO.puts "Uploading #{file_name} to S3"
-    file_name
+  def s3_upload(filename) do
+    IO.puts "Uploading #{filename} to S3"
+    filename
     |> ExAws.S3.Upload.stream_file
-    |> ExAws.S3.upload(Confex.get(:ex_aws, :upload_bucket), file_name)
+    |> ExAws.S3.upload(Confex.get(:ex_aws, :upload_bucket), filename)
     |> ExAws.request!
-    IO.puts "Done Uploading #{file_name} to S3"
-    GenServer.cast(VideoProcessor.S3Upload, {:s3_upload_finish, file_name})
+    IO.puts "Done Uploading #{filename} to S3"
+    GenServer.cast(VideoProcessor.S3Upload, {:s3_upload_finish, filename})
   end
 end

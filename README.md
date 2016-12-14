@@ -1,6 +1,6 @@
 # VideoProcessor
 
-**TODO: Add description**
+`source .env`
 
 ## Installation
 
@@ -21,4 +21,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
       [applications: [:video_processor]]
     end
     ```
-
