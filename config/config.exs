@@ -29,7 +29,8 @@ config :video_processor,
   uplynk_account_guid: {:system, "UPLYNK_ACCOUNT_GUID"},
   uplynk_secret_key:   {:system, "UPLYNK_SECRET_KEY"},
   s3_url:              {:system, "AWS_S3_URL"},
-  disk_storage:        {:system, "DISK_STORAGE"}
+  disk_storage:        {:system, "DISK_STORAGE"},
+  download_dir:        {:system, "DOWNLOAD_DIR"}
 config :ex_aws,
   access_key_id:     {:system, "AWS_ACCESS_KEY_ID"},
   secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"},
