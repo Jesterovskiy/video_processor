@@ -6,13 +6,13 @@ defmodule VideoProcessor.Periodically do
   end
 
   def init(state) do
-    Process.send(self(), :work, [])
+    if Confex.get(:video_processor, :schedule_work) == "true", do: Process.send(self(), :work, [])
     {:ok, state}
   end
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!
-    Enum.each(Floki.find(response.body, "item") |> Enum.slice(0, 1),
+    Enum.each(Floki.find(response.body, "item"),
       fn(x) ->
         filename = parse_xml(x, "guid") <> ".mp4"
         check_state_and_run(filename, parse_xml(x, "link"))
@@ -22,9 +22,9 @@ defmodule VideoProcessor.Periodically do
     {:noreply, state}
   end
 
-  defp schedule_work() do
+  defp schedule_work do
     IO.puts "Schedule Work"
-    Process.send_after(self(), :work, 300 * 60 * 1000)
+    Process.send_after(self(), :work, 5 * 60 * 1000)
   end
 
   defp parse_xml(item, element) do
