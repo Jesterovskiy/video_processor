@@ -32,7 +32,7 @@ config :video_processor,
   disk_storage:        {:system, "DISK_STORAGE"},
   download_dir:        {:system, "DOWNLOAD_DIR"},
   schedule_work:       {:system, "SCHEDULE_WORK"},
-  task_limit:          {:system, "TASK_LIMIT"}
+  task_limit:          {:system, :integer, "TASK_LIMIT"}
 config :ex_aws,
   access_key_id:     {:system, "AWS_ACCESS_KEY_ID"},
   secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"},
