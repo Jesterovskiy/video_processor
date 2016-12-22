@@ -6,7 +6,7 @@ defmodule VideoProcessor.Periodically do
   end
 
   def init(state) do
-    if Confex.get(:video_processor, :schedule_work) == "true", do: Process.send(self(), :work, [])
+    Process.send(self(), :work, [])
     {:ok, state}
   end
 
@@ -18,7 +18,7 @@ defmodule VideoProcessor.Periodically do
         check_state_and_run(filename, parse_xml(x, "link"))
       end
     )
-    schedule_work()
+    if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
 
