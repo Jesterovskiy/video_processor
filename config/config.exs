@@ -36,7 +36,8 @@ config :video_processor,
 config :ex_aws,
   access_key_id:     {:system, "AWS_ACCESS_KEY_ID"},
   secret_access_key: {:system, "AWS_SECRET_ACCESS_KEY"},
-  upload_bucket:     {:system, "AWS_UPLOAD_BUCKET"}
+  upload_bucket:     {:system, "AWS_UPLOAD_BUCKET"},
+  upload_folder:     {:system, "AWS_UPLOAD_FOLDER"}
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

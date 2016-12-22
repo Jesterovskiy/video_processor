@@ -45,7 +45,7 @@ defmodule VideoProcessor.UplynkUpload do
       "_owner"      => Confex.get(:video_processor, :uplynk_account_guid),
       "_timestamp"  => DateTime.utc_now() |> DateTime.to_unix,
       "source"      => %{
-        url: Confex.get(:video_processor, :s3_url) <> "/#{filename}",
+        url: Confex.get(:video_processor, :s3_url) <> Confex.get(:ex_aws, :upload_folder) <> "#{filename}",
         api_key: Confex.get(:ex_aws, :access_key_id),
         api_secret: Confex.get(:ex_aws, :secret_access_key)
       },

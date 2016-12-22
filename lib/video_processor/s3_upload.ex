@@ -44,7 +44,7 @@ defmodule VideoProcessor.S3Upload do
     IO.puts "Uploading #{filename} to S3"
     Confex.get(:video_processor, :download_dir) <> filename
     |> ExAws.S3.Upload.stream_file
-    |> ExAws.S3.upload(Confex.get(:ex_aws, :upload_bucket), filename)
+    |> ExAws.S3.upload(Confex.get(:ex_aws, :upload_bucket), Confex.get(:ex_aws, :upload_folder) <> filename)
     |> ExAws.request!
     IO.puts "Done Uploading #{filename} to S3"
     GenServer.cast(VideoProcessor.S3Upload, {:s3_upload_finish, filename})
