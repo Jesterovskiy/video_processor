@@ -2,7 +2,7 @@ defmodule VideoProcessor.Download do
   use GenServer
 
   defmodule State do
-    defstruct limit: Confex.get(:video_processor, :task_limit), current_count: 0, queue: []
+    defstruct limit: Confex.get(:video_processor, :task_limit) |> String.to_integer, current_count: 0, queue: []
   end
 
   def start_link do
