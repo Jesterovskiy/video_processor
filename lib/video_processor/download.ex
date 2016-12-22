@@ -44,7 +44,7 @@ defmodule VideoProcessor.Download do
     download_dir = Confex.get(:video_processor, :download_dir)
     IO.puts "Downloading #{src} -> #{download_dir <> output_filename}"
     body = HTTPoison.get!(src).body
-    File.write!(download_dir <> output_filename, body)
+    File.write!(download_dir <> "/" <> output_filename, body)
     IO.puts "Done Downloading #{src} -> #{download_dir <> output_filename}"
     GenServer.cast(VideoProcessor.Download, {:download_finish, output_filename})
   end
