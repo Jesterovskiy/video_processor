@@ -42,7 +42,7 @@ defmodule VideoProcessor.S3Upload do
 
   def s3_upload(filename) do
     IO.puts "Uploading #{filename} to S3"
-    Confex.get(:video_processor, :download_dir) <> filename
+    Confex.get(:video_processor, :download_dir) <> "/" <> filename
     |> ExAws.S3.Upload.stream_file
     |> ExAws.S3.upload(Confex.get(:ex_aws, :upload_bucket), Confex.get(:ex_aws, :upload_folder) <> filename)
     |> ExAws.request!
