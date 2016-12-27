@@ -13,9 +13,8 @@ defmodule VideoProcessor.Periodically do
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!
     Enum.each(Floki.find(response.body, "item"),
-      fn(x) ->
-        filename = parse_xml(x, "guid") <> ".mp4"
-        check_state_and_run(filename, parse_xml(x, "link"))
+      fn(complex_media) ->
+        check_state_and_run(complex_media)
       end
     )
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
@@ -31,15 +30,16 @@ defmodule VideoProcessor.Periodically do
     Floki.find(item, element) |> List.first |> elem(2) |> List.first
   end
 
-  def check_state_and_run(filename, url) do
+  def check_state_and_run(complex_media) do
+    filename = parse_xml(complex_media, "guid") <> ".mp4"
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
     case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
       [] ->
-        GenServer.call(VideoProcessor.Download, {:process, [url, filename]})
+        GenServer.call(VideoProcessor.Download, {:process, complex_media})
       [{filename, "download_finish"}] ->
-        GenServer.call(VideoProcessor.S3Upload, {:process, filename})
+        GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
       [{filename, "s3_upload_finish"}] ->
-        GenServer.call(VideoProcessor.UplynkUpload, {:process, filename})
+        GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
       [{filename, "done"}] ->
         IO.puts filename <> " complete"
     end

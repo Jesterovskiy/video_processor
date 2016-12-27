@@ -13,22 +13,23 @@ defmodule VideoProcessor.Download do
     {:ok, %State{}}
   end
 
-  def handle_call({:process, params}, _from, state) do
+  def handle_call({:process, complex_media}, _from, state) do
     {message, new_state} =
       if state.current_count < state.limit do
-        Task.async(VideoProcessor.Download, :download, params)
+        Task.async(VideoProcessor.Download, :download, [complex_media])
         {:executing_right_now, update_in(state.current_count, &(&1 + 1))}
       else
-        {:added_to_queue, update_in(state.queue, &[params | &1])}
+        {:added_to_queue, update_in(state.queue, &[complex_media | &1])}
       end
     {:reply, message, new_state}
   end
 
-  def handle_cast({:download_finish, filename}, state) do
+  def handle_cast({:download_finish, complex_media}, state) do
+    filename = parse_xml(complex_media, "guid") <> ".mp4"
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
     :dets.insert(Confex.get(:video_processor, :disk_storage), {filename, "download_finish"})
     :dets.close(Confex.get(:video_processor, :disk_storage))
-    GenServer.call(VideoProcessor.S3Upload, {:process, filename})
+    GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
@@ -40,12 +41,18 @@ defmodule VideoProcessor.Download do
     {:noreply, new_state}
   end
 
-  def download(src, output_filename) do
+  def download(complex_media) do
+    url      = parse_xml(complex_media, "link")
+    filename = parse_xml(complex_media, "guid") <> ".mp4"
     download_dir = Confex.get(:video_processor, :download_dir)
-    IO.puts "Downloading #{src} -> #{download_dir <> output_filename}"
-    body = HTTPoison.get!(src).body
-    File.write!(download_dir <> "/" <> output_filename, body)
-    IO.puts "Done Downloading #{src} -> #{download_dir <> output_filename}"
-    GenServer.cast(VideoProcessor.Download, {:download_finish, output_filename})
+    IO.puts "Downloading #{url} -> #{download_dir <> filename}"
+    body = HTTPoison.get!(url).body
+    File.write!(download_dir <> "/" <> filename, body)
+    IO.puts "Done Downloading #{url} -> #{download_dir <> filename}"
+    GenServer.cast(VideoProcessor.Download, {:download_finish, complex_media})
+  end
+
+  defp parse_xml(item, element) do
+    Floki.find(item, element) |> List.first |> elem(2) |> List.first
   end
 end

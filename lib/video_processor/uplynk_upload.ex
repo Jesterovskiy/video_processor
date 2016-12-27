@@ -13,13 +13,13 @@ defmodule VideoProcessor.UplynkUpload do
     {:ok, %State{}}
   end
 
-  def handle_call({:process, source_file}, _from, state) do
+  def handle_call({:process, complex_media}, _from, state) do
     {message, new_state} =
       if state.current_count < state.limit do
-        Task.async(VideoProcessor.UplynkUpload, :uplynk_upload, [source_file])
+        Task.async(VideoProcessor.UplynkUpload, :uplynk_upload, [complex_media])
         {:executing_right_now, update_in(state.current_count, &(&1 + 1))}
       else
-        {:added_to_queue, update_in(state.queue, &[source_file | &1])}
+        {:added_to_queue, update_in(state.queue, &[complex_media | &1])}
       end
     {:reply, message, new_state}
   end
@@ -39,7 +39,9 @@ defmodule VideoProcessor.UplynkUpload do
     {:noreply, new_state}
   end
 
-  def uplynk_upload(filename) do
+  def uplynk_upload(complex_media) do
+    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    poster_file = parse_xml(complex_media, "media:thumbnail")
     IO.puts "Uploading #{filename} to upLynk"
     msg = %{
       "_owner"      => Confex.get(:video_processor, :uplynk_account_guid),
@@ -49,7 +51,10 @@ defmodule VideoProcessor.UplynkUpload do
         api_key: Confex.get(:ex_aws, :access_key_id),
         api_secret: Confex.get(:ex_aws, :secret_access_key)
       },
-      "args"        => %{external_id: String.replace(filename, ".mp4", "")}
+      "args"        => %{
+        external_id: String.replace(filename, ".mp4", ""),
+        poster_file: poster_file
+      }
     } |> JSX.encode |> elem(1)
     msg = Base.encode64(:zlib.compress(msg)) |> String.strip
     sig = :crypto.hmac(:sha256, Confex.get(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
@@ -59,15 +64,7 @@ defmodule VideoProcessor.UplynkUpload do
     GenServer.cast(VideoProcessor.UplynkUpload, {:uplynk_upload_finish, filename})
   end
 
-  def get_cloud_jobs do
-    msg = %{
-      "_owner"      => Confex.get(:video_processor, :uplynk_account_guid),
-      "_timestamp"  => DateTime.utc_now() |> DateTime.to_unix
-    } |> JSX.encode |> elem(1)
-    msg = Base.encode64(:zlib.compress(msg)) |> String.strip
-    sig = :crypto.hmac(:sha256, Confex.get(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
-    query = %{msg: msg, sig: sig} |> URI.encode_query
-    response = HTTPoison.get!("http://services.uplynk.com/api2/cloudslicer/jobs/list?" <> query)
-    IO.puts inspect response
+  defp parse_xml(item, element) do
+    Floki.find(item, element) |> List.first |> elem(2) |> List.first
   end
 end
