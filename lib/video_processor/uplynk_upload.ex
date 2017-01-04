@@ -41,7 +41,7 @@ defmodule VideoProcessor.UplynkUpload do
 
   def uplynk_upload(complex_media) do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
-    poster_file = parse_xml(complex_media, "media:thumbnail")
+    poster_file = get_thumbnail(complex_media)
     IO.puts "Uploading #{filename} to upLynk"
     msg = %{
       "_owner"      => Confex.get(:video_processor, :uplynk_account_guid),
@@ -66,5 +66,9 @@ defmodule VideoProcessor.UplynkUpload do
 
   defp parse_xml(item, element) do
     Floki.find(item, element) |> List.first |> elem(2) |> List.first
+  end
+
+  defp get_thumbnail(item) do
+    item |> elem(2) |> List.keyfind("media:thumbnail", 0) |> elem(1) |> List.first |> elem(1)
   end
 end

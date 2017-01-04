@@ -32,7 +32,7 @@ defmodule VideoProcessor.Mixfile do
       {:confex, "~> 1.4.1"},
       {:httpoison, "~> 0.10.0"},
       {:poison, "~> 2.0"},
-      {:floki, "~> 0.11.0"},
+      {:floki, "~> 0.12.0"},
       {:ex_aws, "~> 1.0.0"},
       {:hackney, "~> 1.6", override: true},
       {:exjsx, "~> 3.2"},
