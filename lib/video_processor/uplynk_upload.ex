@@ -69,6 +69,6 @@ defmodule VideoProcessor.UplynkUpload do
   end
 
   defp get_thumbnail(item) do
-    item |> elem(2) |> List.keyfind("media:thumbnail", 0) |> elem(1) |> List.first |> elem(1)
+    Floki.find(item, "media|thumbnail") |> List.first |> elem(1) |> List.first |> elem(1)
   end
 end
