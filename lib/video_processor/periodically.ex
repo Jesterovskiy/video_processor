@@ -12,13 +12,23 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!
-    Enum.each(Floki.find(response.body, "item"),
-      fn(complex_media) ->
-        check_state_and_run(complex_media)
-      end
-    )
-    if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"))
     {:noreply, state}
+  end
+
+  defp process_complex_items([head | tail], acc) do
+    check_state_and_run(head)
+    process_complex_items(tail, acc)
+  end
+
+  defp process_complex_items([], acc) do
+    if acc |> String.length > 0 do
+      response = acc |> HTTPoison.get!
+      acc = parse_xml(response.body, "next_page")
+      process_complex_items(Floki.find(response.body, "item"), acc)
+    else
+      if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
+    end
   end
 
   defp schedule_work do
@@ -27,7 +37,8 @@ defmodule VideoProcessor.Periodically do
   end
 
   defp parse_xml(item, element) do
-    Floki.find(item, element) |> List.first |> elem(2) |> List.first
+    result = Floki.find(item, element)
+    if result |> List.first, do: result |> List.first |> elem(2) |> List.first, else: ""
   end
 
   def check_state_and_run(complex_media) do
