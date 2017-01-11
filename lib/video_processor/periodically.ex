@@ -12,20 +12,21 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"))
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 3)
     {:noreply, state}
   end
 
-  defp process_complex_items([head | tail], acc) do
+  defp process_complex_items([head | tail], acc, counter) do
     check_state_and_run(head)
-    process_complex_items(tail, acc)
+    process_complex_items(tail, acc, counter)
   end
 
-  defp process_complex_items([], acc) do
-    if acc |> String.length > 0 do
+  defp process_complex_items([], acc, counter) do
+    if (acc |> String.length > 0) && counter != 0 do
       response = acc |> HTTPoison.get!
       acc = parse_xml(response.body, "next_page")
-      process_complex_items(Floki.find(response.body, "item"), acc)
+      counter = counter - 1
+      process_complex_items(Floki.find(response.body, "item"), acc, counter)
     else
       if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     end
