@@ -2,7 +2,7 @@ defmodule VideoProcessor.Periodically do
   use GenServer
 
   def start_link do
-    GenServer.start_link(__MODULE__, %{})
+    GenServer.start_link(__MODULE__, [], [name: __MODULE__])
   end
 
   def init(state) do
@@ -11,8 +11,8 @@ defmodule VideoProcessor.Periodically do
   end
 
   def handle_info(:work, state) do
-    response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 3)
+    response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!([], [timeout: 50000])
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
     {:noreply, state}
   end
 
@@ -22,10 +22,10 @@ defmodule VideoProcessor.Periodically do
   end
 
   defp process_complex_items([], acc, counter) do
+    counter = counter - 1
     if (acc |> String.length > 0) && counter != 0 do
-      response = acc |> HTTPoison.get!
+      response = acc |> HTTPoison.get!([], [timeout: 50000])
       acc = parse_xml(response.body, "next_page")
-      counter = counter - 1
       process_complex_items(Floki.find(response.body, "item"), acc, counter)
     else
       if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
@@ -44,6 +44,7 @@ defmodule VideoProcessor.Periodically do
 
   def check_state_and_run(complex_media) do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
+    download_dir = Confex.get(:video_processor, :download_dir)
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
     case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
       [] ->
@@ -53,6 +54,7 @@ defmodule VideoProcessor.Periodically do
       [{filename, "s3_upload_finish"}] ->
         GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
       [{filename, "done"}] ->
+        File.rm(download_dir <> "/" <> filename)
         IO.puts filename <> " complete"
     end
     :dets.close(Confex.get(:video_processor, :disk_storage))
