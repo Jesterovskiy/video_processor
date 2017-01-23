@@ -56,7 +56,8 @@ defmodule VideoProcessor.UplynkUpload do
       "args"        => %{
         external_id: String.replace(filename, ".mp4", ""),
         poster_file: poster_file,
-        skip_drm:    1
+        skip_drm:    1,
+        meta: "complex_category=#{parse_xml(complex_media, "media|category")},,,complex_account=#{parse_xml(complex_media, "account")}"
       }
     } |> JSX.encode |> elem(1)
     msg = Base.encode64(:zlib.compress(msg)) |> String.strip
