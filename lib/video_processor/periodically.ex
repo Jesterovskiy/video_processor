@@ -14,6 +14,7 @@ defmodule VideoProcessor.Periodically do
     response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!([], [timeout: 50000])
     process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
+    IO.puts "Handle Info Finished"
     {:noreply, state}
   end
 
@@ -32,6 +33,7 @@ defmodule VideoProcessor.Periodically do
   end
 
   defp process_complex_items([], acc, counter) do
+    IO.puts "Process Complex Items Finished"
     :ok
   end
 
