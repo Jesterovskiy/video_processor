@@ -12,8 +12,9 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
-    if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
+    Enum.each(Floki.find(response.body, "item"), fn(item) -> Task.start(VideoProcessor.Periodically, :check_state_and_run, [item]) end)
+    # process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
+    # if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
 
