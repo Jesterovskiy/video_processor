@@ -23,15 +23,15 @@ defmodule VideoProcessor.Periodically do
     process_complex_items(tail, acc, counter)
   end
 
-  defp process_complex_items([], acc, counter) do
+  defp process_complex_items([], acc, counter) when length(acc) != 0 and counter != 0 do
     counter = counter - 1
-    if (acc |> String.length > 0) && counter != 0 do
-      response = acc |> HTTPoison.get!([], [timeout: 50000])
-      acc = parse_xml(response.body, "next_page")
-      process_complex_items(Floki.find(response.body, "item"), acc, counter)
-    else
-      if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
-    end
+    response = acc |> HTTPoison.get!([], [timeout: 50000])
+    acc = parse_xml(response.body, "next_page")
+    process_complex_items(Floki.find(response.body, "item"), acc, counter)
+  end
+
+  defp process_complex_items([], acc, counter) when length(acc) == 0 and counter == 0 do
+    if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
   end
 
   defp schedule_work do
