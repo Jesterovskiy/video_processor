@@ -11,30 +11,26 @@ defmodule VideoProcessor.Periodically do
   end
 
   def handle_info(:work, state) do
-    response = Confex.get(:video_processor, :complex_feed_url) |> HTTPoison.get!([], [timeout: 50000])
+    response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
     process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
-    IO.puts "Handle Info Finished"
     {:noreply, state}
   end
 
-  defp process_complex_items(list, acc \\ 0, counter \\ 0)
-
-  defp process_complex_items([head | tail], acc, counter) do
-    check_state_and_run(head)
-    process_complex_items(tail, acc, counter)
-  end
-
-  defp process_complex_items([], acc, counter) when length(acc) > 0 and counter != 1 do
+  defp process_complex_items(complex_items, next_page, counter) do
+    Enum.each(complex_items, fn(item) -> check_state_and_run(item) end)
     counter = counter - 1
-    response = acc |> HTTPoison.get!([], [timeout: 50000])
-    acc = parse_xml(response.body, "next_page")
-    process_complex_items(Floki.find(response.body, "item"), acc, counter)
+    if counter != 0 do
+      response = next_page |> fetch_complex()
+      next_page = parse_xml(response.body, "next_page")
+      process_complex_items(Floki.find(response.body, "item"), next_page, counter)
+    else
+      IO.puts "Process Complex Items Finished"
+    end
   end
 
-  defp process_complex_items([], acc, counter) do
-    IO.puts "Process Complex Items Finished"
-    :ok
+  defp fetch_complex(url) do
+    url |> HTTPoison.get!([], [timeout: 50000])
   end
 
   defp schedule_work do
