@@ -16,6 +16,8 @@ defmodule VideoProcessor.Periodically do
     {:noreply, state}
   end
 
+  defp process_complex_items(list, acc \\ 0, counter \\ 0)
+
   defp process_complex_items([head | tail], acc, counter) do
     check_state_and_run(head)
     process_complex_items(tail, acc, counter)
