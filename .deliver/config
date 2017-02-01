@@ -1,10 +1,10 @@
 APP="video_processor"
 
-BUILD_HOST="ec2-54-91-111-199.compute-1.amazonaws.com"
+BUILD_HOST="ec2-54-152-175-225.compute-1.amazonaws.com"
 BUILD_USER="ubuntu"
 BUILD_AT="/tmp/edeliver/myapp/builds"
 
-PRODUCTION_HOSTS="ec2-54-91-111-199.compute-1.amazonaws.com"
+PRODUCTION_HOSTS="ec2-54-152-175-225.compute-1.amazonaws.com"
 PRODUCTION_USER="ubuntu"
 DELIVER_TO="/app"
 
