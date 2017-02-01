@@ -12,7 +12,7 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 2)
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
@@ -51,11 +51,9 @@ defmodule VideoProcessor.Periodically do
       [] ->
         GenServer.call(VideoProcessor.Download, {:process, complex_media})
       [{filename, "download_finish"}] ->
-        IO.puts "S3Upload"
-        # GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
+        GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
       [{filename, "s3_upload_finish"}] ->
-        IO.puts "UplynkUpload"
-        # GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
+        GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
       [{filename, "done"}] ->
         File.rm(download_dir <> "/" <> filename)
         IO.puts filename <> " complete"
