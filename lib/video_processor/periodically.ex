@@ -48,7 +48,8 @@ defmodule VideoProcessor.Periodically do
     download_dir = Confex.get(:video_processor, :download_dir)
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
     case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
-      # [] ->
+      [] ->
+        IO.puts "Download started"
       #   GenServer.call(VideoProcessor.Download, {:process, complex_media})
       [{filename, "download_finish"}] ->
         GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
