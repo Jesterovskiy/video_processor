@@ -49,12 +49,11 @@ defmodule VideoProcessor.Periodically do
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
     case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
       [] ->
-        IO.puts "Download started"
-      #   GenServer.call(VideoProcessor.Download, {:process, complex_media})
-      [{filename, "download_finish"}] ->
-        GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
-      [{filename, "s3_upload_finish"}] ->
-        GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
+        GenServer.call(VideoProcessor.Download, {:process, complex_media})
+      # [{filename, "download_finish"}] ->
+      #   GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
+      # [{filename, "s3_upload_finish"}] ->
+      #   GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
       [{filename, "done"}] ->
         File.rm(download_dir <> "/" <> filename)
         IO.puts filename <> " complete"
