@@ -47,17 +47,17 @@ defmodule VideoProcessor.Periodically do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
     download_dir = Confex.get(:video_processor, :download_dir)
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
-    # case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
-    #   [] ->
-    #     GenServer.call(VideoProcessor.Download, {:process, complex_media})
-    #   [{filename, "download_finish"}] ->
-    #     GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
-    #   [{filename, "s3_upload_finish"}] ->
-    #     GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
-    #   [{filename, "done"}] ->
-    #     File.rm(download_dir <> "/" <> filename)
-    #     IO.puts filename <> " complete"
-    # end
+    case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
+      # [] ->
+      #   GenServer.call(VideoProcessor.Download, {:process, complex_media})
+      [{filename, "download_finish"}] ->
+        GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
+      [{filename, "s3_upload_finish"}] ->
+        GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
+      [{filename, "done"}] ->
+        File.rm(download_dir <> "/" <> filename)
+        IO.puts filename <> " complete"
+    end
     :dets.close(Confex.get(:video_processor, :disk_storage))
   end
 end
