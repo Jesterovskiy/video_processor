@@ -12,9 +12,8 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
-    Enum.each(Floki.find(response.body, "item"), fn(item) -> Task.start(VideoProcessor.Periodically, :check_state_and_run, [item]) end)
-    # process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
-    # if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 1)
+    if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
 
@@ -48,17 +47,17 @@ defmodule VideoProcessor.Periodically do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
     download_dir = Confex.get(:video_processor, :download_dir)
     :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
-    case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
-      [] ->
-        GenServer.call(VideoProcessor.Download, {:process, complex_media})
-      [{filename, "download_finish"}] ->
-        GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
-      [{filename, "s3_upload_finish"}] ->
-        GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
-      [{filename, "done"}] ->
-        File.rm(download_dir <> "/" <> filename)
-        IO.puts filename <> " complete"
-    end
+    # case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
+    #   [] ->
+    #     GenServer.call(VideoProcessor.Download, {:process, complex_media})
+    #   [{filename, "download_finish"}] ->
+    #     GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
+    #   [{filename, "s3_upload_finish"}] ->
+    #     GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
+    #   [{filename, "done"}] ->
+    #     File.rm(download_dir <> "/" <> filename)
+    #     IO.puts filename <> " complete"
+    # end
     :dets.close(Confex.get(:video_processor, :disk_storage))
   end
 end
