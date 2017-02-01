@@ -51,11 +51,9 @@ defmodule VideoProcessor.Periodically do
       [] ->
         GenServer.call(VideoProcessor.Download, {:process, complex_media})
       [{filename, "download_finish"}] ->
-        IO.puts "Download finish"
-      #   GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
+        GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
       [{filename, "s3_upload_finish"}] ->
-        IO.puts "S3 Upload finish"
-      #   GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
+        GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
       [{filename, "done"}] ->
         File.rm(download_dir <> "/" <> filename)
         IO.puts filename <> " complete"
