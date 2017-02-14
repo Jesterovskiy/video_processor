@@ -12,7 +12,7 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 10)
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 20)
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
