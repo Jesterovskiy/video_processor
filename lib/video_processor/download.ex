@@ -26,14 +26,14 @@ defmodule VideoProcessor.Download do
 
   def handle_cast({:download_finish, complex_media}, state) do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
-    :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
-    :dets.insert(Confex.get(:video_processor, :disk_storage), {filename, "download_finish"})
-    :dets.close(Confex.get(:video_processor, :disk_storage))
+    VideoProcessor.DB.insert(filename, "download_finish")
     GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
-        Task.start(VideoProcessor.Download, :download, [params])
+        if VideoProcessor.DB.lookup(filename) == [] do
+          Task.start(VideoProcessor.Download, :download, [params])
+        end
         put_in(state.queue, params_later_in_queue)
       else
         update_in(state.current_count, &(&1 - 1))

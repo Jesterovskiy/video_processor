@@ -25,15 +25,15 @@ defmodule VideoProcessor.UplynkUpload do
   end
 
   def handle_cast({:uplynk_upload_finish, filename}, state) do
-    :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
-    :dets.insert(Confex.get(:video_processor, :disk_storage), {filename, "done"})
-    :dets.close(Confex.get(:video_processor, :disk_storage))
+    VideoProcessor.DB.insert(filename, "done")
     download_dir = Confex.get(:video_processor, :download_dir)
     File.rm(download_dir <> "/" <> filename)
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
-        Task.start(VideoProcessor.UplynkUpload, :uplynk_upload, [params])
+        if VideoProcessor.DB.lookup(filename) == [{filename, "s3_upload_finish"}] do
+          Task.start(VideoProcessor.UplynkUpload, :uplynk_upload, [params])
+        end
         put_in(state.queue, params_later_in_queue)
       else
         update_in(state.current_count, &(&1 - 1))
@@ -59,11 +59,8 @@ defmodule VideoProcessor.UplynkUpload do
         skip_drm:    1,
         meta: "complex_category=#{parse_xml(complex_media, "media|category")},,,complex_account=#{parse_xml(complex_media, "account")}"
       }
-    } |> JSX.encode |> elem(1)
-    msg = Base.encode64(:zlib.compress(msg)) |> String.strip
-    sig = :crypto.hmac(:sha256, Confex.get(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
-    query = %{msg: msg, sig: sig} |> URI.encode_query
-    HTTPoison.get!("http://services.uplynk.com/api2/cloudslicer/jobs/create?" <> query)
+    }
+    uplynk_get("cloudslicer/jobs/create", msg)
     IO.puts "Done Uploading #{filename} to upLynk"
     GenServer.cast(VideoProcessor.UplynkUpload, {:uplynk_upload_finish, filename})
   end
@@ -74,5 +71,13 @@ defmodule VideoProcessor.UplynkUpload do
 
   defp get_thumbnail(item) do
     Floki.find(item, "media|thumbnail") |> List.first |> elem(1) |> List.first |> elem(1)
+  end
+
+  defp uplynk_get(link, msg) do
+    msg = msg |> JSX.encode |> elem(1)
+    msg = Base.encode64(:zlib.compress(msg)) |> String.strip
+    sig = :crypto.hmac(:sha256, Confex.get(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
+    query = %{msg: msg, sig: sig} |> URI.encode_query
+    HTTPoison.get!("http://services.uplynk.com/api2/" <> link <> "?" <> query)
   end
 end

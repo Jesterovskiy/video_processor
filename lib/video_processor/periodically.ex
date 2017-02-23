@@ -46,8 +46,7 @@ defmodule VideoProcessor.Periodically do
   def check_state_and_run(complex_media) do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
     download_dir = Confex.get(:video_processor, :download_dir)
-    :dets.open_file(Confex.get(:video_processor, :disk_storage), [type: :set])
-    case :dets.lookup(Confex.get(:video_processor, :disk_storage), filename) do
+    case VideoProcessor.DB.lookup(filename) do
       [] ->
         GenServer.call(VideoProcessor.Download, {:process, complex_media})
       [{filename, "download_finish"}] ->
@@ -58,6 +57,5 @@ defmodule VideoProcessor.Periodically do
         File.rm(download_dir <> "/" <> filename)
         IO.puts filename <> " complete"
     end
-    :dets.close(Confex.get(:video_processor, :disk_storage))
   end
 end
