@@ -78,6 +78,6 @@ defmodule VideoProcessor.UplynkUpload do
     msg = Base.encode64(:zlib.compress(msg)) |> String.strip
     sig = :crypto.hmac(:sha256, Confex.get(:video_processor, :uplynk_secret_key), msg) |> Base.encode16
     query = %{msg: msg, sig: sig} |> URI.encode_query
-    HTTPoison.get!("http://services.uplynk.com/api2/" <> link <> "?" <> query)
+    HTTPoison.get!("http://services.uplynk.com/api2/" <> link <> "?" <> query, [], [timeout: 60000, recv_timeout: 60000])
   end
 end

@@ -46,7 +46,7 @@ defmodule VideoProcessor.Download do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
     download_dir = Confex.get(:video_processor, :download_dir)
     IO.puts "Downloading #{url} -> #{download_dir <> filename}"
-    File.write!(download_dir <> "/" <> filename, HTTPoison.get!(url).body)
+    File.write!(download_dir <> "/" <> filename, HTTPoison.get!(url, [], [timeout: 60000, recv_timeout: 60000]).body)
     IO.puts "Done Downloading #{url} -> #{download_dir <> filename}"
     GenServer.cast(VideoProcessor.Download, {:download_finish, complex_media})
   end

@@ -28,8 +28,11 @@ defmodule VideoProcessor.Periodically do
     end
   end
 
-  defp fetch_complex(url) do
-    url |> HTTPoison.get!([], [timeout: 50000])
+  defp fetch_complex(url, retry \\ 5) do
+    case url |> HTTPoison.get([], [timeout: 60000, recv_timeout: 60000]) do
+      {:ok, response} -> response
+      {:error, reason} -> if retry == 0, do: raise reason, else: fetch_complex(url, retry - 1)
+    end
   end
 
   defp schedule_work do
