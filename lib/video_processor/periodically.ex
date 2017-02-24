@@ -31,7 +31,7 @@ defmodule VideoProcessor.Periodically do
   defp fetch_complex(url, retry \\ 5) do
     case url |> HTTPoison.get([], [timeout: 60000, recv_timeout: 60000]) do
       {:ok, response} -> response
-      {:error, reason} -> if retry == 0, do: raise reason, else: fetch_complex(url, retry - 1)
+      {:error, reason} -> if retry == 0, do: raise(inspect reason), else: fetch_complex(url, retry - 1)
     end
   end
 
@@ -47,7 +47,6 @@ defmodule VideoProcessor.Periodically do
 
   def check_state_and_run(complex_media) do
     filename = parse_xml(complex_media, "guid") <> ".mp4"
-    download_dir = Confex.get(:video_processor, :download_dir)
     case VideoProcessor.DB.lookup(filename) do
       [] ->
         GenServer.call(VideoProcessor.Download, {:process, complex_media})
