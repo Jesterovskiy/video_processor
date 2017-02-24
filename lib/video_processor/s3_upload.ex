@@ -31,9 +31,7 @@ defmodule VideoProcessor.S3Upload do
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
-        if VideoProcessor.DB.lookup(filename) == [{filename, "download_finish"}] do
-          Task.start(VideoProcessor.S3Upload, :s3_upload, [params])
-        end
+        Task.start(VideoProcessor.S3Upload, :s3_upload, [params])
         put_in(state.queue, params_later_in_queue)
       else
         update_in(state.current_count, &(&1 - 1))

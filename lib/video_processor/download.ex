@@ -31,9 +31,7 @@ defmodule VideoProcessor.Download do
     new_state =
       if length(state.queue) > 0 do
         [params | params_later_in_queue] = Enum.reverse(state.queue)
-        if VideoProcessor.DB.lookup(filename) == [] do
-          Task.start(VideoProcessor.Download, :download, [params])
-        end
+        Task.start(VideoProcessor.Download, :download, [params])
         put_in(state.queue, params_later_in_queue)
       else
         update_in(state.current_count, &(&1 - 1))
