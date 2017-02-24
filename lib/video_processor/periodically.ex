@@ -17,7 +17,7 @@ defmodule VideoProcessor.Periodically do
     {:noreply, state}
   end
 
-  defp process_complex_items(complex_items, next_page) do
+  def process_complex_items(complex_items, next_page) do
     Enum.each(complex_items, fn(item) -> check_state_and_run(item) end)
     if next_page != "" do
       response = next_page |> fetch_complex()
@@ -28,19 +28,19 @@ defmodule VideoProcessor.Periodically do
     end
   end
 
-  defp fetch_complex(url, retry \\ 5) do
+  def fetch_complex(url, retry \\ 5) do
     case url |> HTTPoison.get([], [timeout: 60000, recv_timeout: 60000]) do
       {:ok, response} -> response
       {:error, reason} -> if retry == 0, do: raise(inspect reason), else: fetch_complex(url, retry - 1)
     end
   end
 
-  defp schedule_work do
+  def schedule_work do
     IO.puts "Schedule Work"
     Process.send_after(self(), :work, 10 * 60 * 1000)
   end
 
-  defp parse_xml(item, element) do
+  def parse_xml(item, element) do
     result = Floki.find(item, element)
     if result |> List.first, do: result |> List.first |> elem(2) |> List.first, else: ""
   end
