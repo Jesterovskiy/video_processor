@@ -12,18 +12,17 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"), 20)
+    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"))
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
 
-  defp process_complex_items(complex_items, next_page, counter) do
+  defp process_complex_items(complex_items, next_page) do
     Enum.each(complex_items, fn(item) -> check_state_and_run(item) end)
-    counter = counter - 1
-    if counter != 0 do
+    if next_page != "" do
       response = next_page |> fetch_complex()
       next_page = parse_xml(response.body, "next_page")
-      process_complex_items(Floki.find(response.body, "item"), next_page, counter)
+      process_complex_items(Floki.find(response.body, "item"), next_page)
     else
       IO.puts "Process Complex Items Finished"
     end
@@ -35,7 +34,7 @@ defmodule VideoProcessor.Periodically do
 
   defp schedule_work do
     IO.puts "Schedule Work"
-    Process.send_after(self(), :work, 5 * 60 * 1000)
+    Process.send_after(self(), :work, 10 * 60 * 1000)
   end
 
   defp parse_xml(item, element) do
@@ -53,9 +52,7 @@ defmodule VideoProcessor.Periodically do
         GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
       [{filename, "s3_upload_finish"}] ->
         GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
-      [{filename, "done"}] ->
-        File.rm(download_dir <> "/" <> filename)
-        IO.puts filename <> " complete"
+      [{filename, "done"}] -> {:ok}
     end
   end
 end
