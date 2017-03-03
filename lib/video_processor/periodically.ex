@@ -37,7 +37,7 @@ defmodule VideoProcessor.Periodically do
 
   def schedule_work do
     IO.puts "Schedule Work"
-    Process.send_after(self(), :work, 10 * 60 * 1000)
+    Process.send_after(self(), :work, 30 * 60 * 1000)
   end
 
   def parse_xml(item, element) do
