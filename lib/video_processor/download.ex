@@ -1,4 +1,5 @@
 defmodule VideoProcessor.Download do
+  import VideoProcessor.Helpers
   use GenServer
 
   defmodule State do
@@ -25,7 +26,7 @@ defmodule VideoProcessor.Download do
   end
 
   def handle_cast({:download_finish, complex_media}, state) do
-    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    filename = parse_xml_item(complex_media, "guid") <> ".mp4"
     VideoProcessor.DB.insert(filename, "download_finish")
     GenServer.call(VideoProcessor.S3Upload, {:process, complex_media})
     new_state =
@@ -40,16 +41,12 @@ defmodule VideoProcessor.Download do
   end
 
   def download(complex_media) do
-    url      = parse_xml(complex_media, "link")
-    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    url      = parse_xml_item(complex_media, "link")
+    filename = parse_xml_item(complex_media, "guid") <> ".mp4"
     download_dir = Confex.get(:video_processor, :download_dir)
     IO.puts "Downloading #{url} -> #{download_dir <> filename}"
     File.write!(download_dir <> "/" <> filename, HTTPoison.get!(url, [], [timeout: 60000, recv_timeout: 60000]).body)
     IO.puts "Done Downloading #{url} -> #{download_dir <> filename}"
     GenServer.cast(VideoProcessor.Download, {:download_finish, complex_media})
-  end
-
-  defp parse_xml(item, element) do
-    Floki.find(item, element) |> List.first |> elem(2) |> List.first
   end
 end

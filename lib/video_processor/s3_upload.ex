@@ -1,4 +1,5 @@
 defmodule VideoProcessor.S3Upload do
+  import VideoProcessor.Helpers
   use GenServer
 
   defmodule State do
@@ -25,7 +26,7 @@ defmodule VideoProcessor.S3Upload do
   end
 
   def handle_cast({:s3_upload_finish, complex_media}, state) do
-    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    filename = parse_xml_item(complex_media, "guid") <> ".mp4"
     VideoProcessor.DB.insert(filename, "s3_upload_finish")
     GenServer.call(VideoProcessor.UplynkUpload, {:process, complex_media})
     new_state =
@@ -40,7 +41,7 @@ defmodule VideoProcessor.S3Upload do
   end
 
   def s3_upload(complex_media) do
-    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    filename = parse_xml_item(complex_media, "guid") <> ".mp4"
     IO.puts "Uploading #{filename} to S3"
     Confex.get(:video_processor, :download_dir) <> "/" <> filename
     |> ExAws.S3.Upload.stream_file
@@ -48,9 +49,5 @@ defmodule VideoProcessor.S3Upload do
     |> ExAws.request!
     IO.puts "Done Uploading #{filename} to S3"
     GenServer.cast(VideoProcessor.S3Upload, {:s3_upload_finish, complex_media})
-  end
-
-  defp parse_xml(item, element) do
-    Floki.find(item, element) |> List.first |> elem(2) |> List.first
   end
 end

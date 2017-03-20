@@ -1,4 +1,5 @@
 defmodule VideoProcessor.UplynkUpload do
+  import VideoProcessor.Helpers
   use GenServer
 
   defmodule State do
@@ -40,7 +41,7 @@ defmodule VideoProcessor.UplynkUpload do
   end
 
   def uplynk_upload(complex_media) do
-    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    filename = parse_xml_item(complex_media, "guid") <> ".mp4"
     poster_file = get_thumbnail(complex_media)
     IO.puts "Uploading #{filename} to upLynk"
     msg = %{
@@ -55,16 +56,12 @@ defmodule VideoProcessor.UplynkUpload do
         external_id: String.replace(filename, ".mp4", ""),
         poster_file: poster_file,
         skip_drm:    1,
-        meta: "complex_category=#{parse_xml(complex_media, "media|category")},,,complex_account=#{parse_xml(complex_media, "account")}"
+        meta: "complex_category=#{parse_xml_item(complex_media, "media|category")},,,complex_account=#{parse_xml_item(complex_media, "account")}"
       }
     }
     uplynk_get("cloudslicer/jobs/create", msg)
     IO.puts "Done Uploading #{filename} to upLynk"
     GenServer.cast(VideoProcessor.UplynkUpload, {:uplynk_upload_finish, filename})
-  end
-
-  defp parse_xml(item, element) do
-    Floki.find(item, element) |> List.first |> elem(2) |> List.first
   end
 
   defp get_thumbnail(item) do

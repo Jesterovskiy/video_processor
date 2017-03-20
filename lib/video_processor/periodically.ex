@@ -1,4 +1,5 @@
 defmodule VideoProcessor.Periodically do
+  import VideoProcessor.Helpers
   use GenServer
 
   def start_link do
@@ -12,7 +13,7 @@ defmodule VideoProcessor.Periodically do
 
   def handle_info(:work, state) do
     response = Confex.get(:video_processor, :complex_feed_url) |> fetch_complex()
-    process_complex_items(Floki.find(response.body, "item"), parse_xml(response.body, "next_page"))
+    process_complex_items(Floki.find(response.body, "item"), parse_xml_item(response.body, "next_page"))
     if Confex.get(:video_processor, :schedule_work) == "true", do: schedule_work()
     {:noreply, state}
   end
@@ -21,7 +22,7 @@ defmodule VideoProcessor.Periodically do
     Enum.each(complex_items, fn(item) -> check_state_and_run(item) end)
     if next_page != "" do
       response = next_page |> fetch_complex()
-      next_page = parse_xml(response.body, "next_page")
+      next_page = parse_xml_item(response.body, "next_page")
       process_complex_items(Floki.find(response.body, "item"), next_page)
     else
       IO.puts "Process Complex Items Finished"
@@ -40,13 +41,8 @@ defmodule VideoProcessor.Periodically do
     Process.send_after(self(), :work, 30 * 60 * 1000)
   end
 
-  def parse_xml(item, element) do
-    result = Floki.find(item, element)
-    if result |> List.first, do: result |> List.first |> elem(2) |> List.first, else: ""
-  end
-
   def check_state_and_run(complex_media) do
-    filename = parse_xml(complex_media, "guid") <> ".mp4"
+    filename = parse_xml_item(complex_media, "guid") <> ".mp4"
     case VideoProcessor.DB.lookup(filename) do
       [] ->
         GenServer.call(VideoProcessor.Download, {:process, complex_media})

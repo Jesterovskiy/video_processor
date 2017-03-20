@@ -3,11 +3,13 @@ defmodule VideoProcessor.Mixfile do
 
   def project do
     [app: :video_processor,
-     version: "0.2.0",
+     version: "1.0.0",
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps(),
+     preferred_cli_env: [espec: :test]
+    ]
   end
 
   # Configuration for the OTP application
@@ -33,12 +35,13 @@ defmodule VideoProcessor.Mixfile do
       {:httpoison, "~> 0.10.0"},
       {:poison, "~> 2.0"},
       {:floki, "~> 0.12.0"},
-      {:ex_aws, "~> 1.0.0"},
-      {:hackney, "~> 1.6", override: true},
+      {:ex_aws, "~> 1.0"},
+      {:hackney, "~> 1.7", override: true},
       {:exjsx, "~> 3.2"},
       {:sweet_xml, "~> 0.5"},
       {:edeliver, "~> 1.4.0"},
-      {:distillery, "~> 0.10"}
+      {:distillery, "~> 0.10"},
+      {:espec, "~> 1.3.2", only: :test}
     ]
   end
 end
