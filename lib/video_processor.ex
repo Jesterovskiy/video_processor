@@ -8,7 +8,8 @@ defmodule VideoProcessor do
       worker(VideoProcessor.Periodically, []),
       worker(VideoProcessor.Download, []),
       worker(VideoProcessor.S3Upload, []),
-      worker(VideoProcessor.UplynkUpload, [])
+      worker(VideoProcessor.UplynkUpload, []),
+      Plug.Adapters.Cowboy.child_spec(:http, VideoProcessor.Router, [], [port: 8080])
     ]
 
     opts = [strategy: :one_for_one, name: VideoProcessor.Supervisor]
